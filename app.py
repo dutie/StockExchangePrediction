@@ -21,8 +21,8 @@ df = pd.concat([data.DataReader(ticker,'yahoo', start_date, end_date) for ticker
 print(df.head(9))
 
 # Getting just the adjusted closing prices. This will return a Pandas DataFrame
-# The index in this DataFrame is the major index of the panel_data.
-close = panel_data['Close']
+# The index in this DataFrame is the major index of the df.
+close = df['Close']
 
 # Getting all weekdays between 01/01/2000 and 12/31/2016
 all_weekdays = pd.date_range(start=start_date, end=end_date, freq='B')
@@ -42,17 +42,20 @@ close.head(10)
 
 close.describe()
 
-# Get the MSFT timeseries. This now returns a Pandas Series object indexed by date.
-msft = close.loc[:, 'MSFT']
 
-# Calculate the 20 and 100 days moving averages of the closing prices
+# Get the MSFT timeseries. This now returns a Pandas Series object indexed by date.
+msft = close[['Close','type']]
+msft.index = close.Date
+print(msft.head(10))
+msft = msft[msft['type']=='KO'].Close
+print(msft.head(10))
 short_rolling_msft = msft.rolling(window=20).mean()
 long_rolling_msft = msft.rolling(window=100).mean()
 
 # Plot everything by leveraging the very powerful matplotlib package
 fig, ax = plt.subplots(figsize=(16,9))
 
-ax.plot(msft.index, msft, label='MSFT')
+ax.plot(msft.index, msft, label='KO')
 ax.plot(short_rolling_msft.index, short_rolling_msft, label='20 days rolling')
 ax.plot(long_rolling_msft.index, long_rolling_msft, label='100 days rolling')
 
@@ -60,3 +63,6 @@ ax.set_xlabel('Date')
 ax.set_ylabel('Adjusted closing price ($)')
 ax.legend()
 
+for ticker in tickers:
+  df= close[close['type']==ticker]
+  df.plot(x="Date", y="Close")
